@@ -30,13 +30,24 @@ class MainActivity : AppCompatActivity() {
             val wakeUp = (currSec + remainSec) * 1000
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, TimerExpiredReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
             manager.setExact(AlarmManager.RTC_WAKEUP, wakeUp, pendingIntent)
+            // todo figure out permissions
+//            if (manager.canScheduleExactAlarms()) PrefUtil.setAlarmSetTime(nowSec, context)
             PrefUtil.setAlarmSetTime(nowSec, context)
             return wakeUp
         }
 
-        val nowSec: Long
+        fun removeAlarm(context: Context) {
+            val intent = Intent(context, TimerExpiredReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            // todo: double check flags
+            val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            manager.cancel(pendingIntent)
+            PrefUtil.setAlarmSetTime(0, context)
+        }
+
+        private val nowSec: Long
             get() = Calendar.getInstance().timeInMillis / 1000
     }
 
@@ -86,6 +97,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         initTimer()
 
+        removeAlarm(this)
         // todo... idk
     }
 
@@ -94,6 +106,7 @@ class MainActivity : AppCompatActivity() {
 
         if (timerState == TimerState.Running) {
             timer.cancel()
+            val wakeUp = setAlarm(this, nowSec, secondsRemaining)
             // todo...
         } else if (timerState == TimerState.Paused) {
             // todo...
@@ -113,8 +126,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         secondsRemaining = if (timerState == TimerState.Stopped) timerLengthSeconds else PrefUtil.getSecondsRemaining(this)
+        val alarmSetTime = PrefUtil.getAlarmSetTime(this)
+        if (alarmSetTime > 0) secondsRemaining -= nowSec - alarmSetTime
         // todo...
-        if (timerState == TimerState.Running) startTimer()
+        if (secondsRemaining <= 0) onTimerFinished()
+        else if (timerState == TimerState.Running) startTimer()
 
         updateButtons()
         updateCountdownUI()
