@@ -56,9 +56,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var timer: CountDownTimer
-    private var timerLengthSeconds: Long = 0L
+    private var timerLengthSeconds: Long = 0
     private var timerState: TimerState = TimerState.Stopped
-    private var secondsRemaining: Long = 0L
+    private var secondsRemaining: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             override fun onFinish() = onTimerFinished()
             override fun onTick(msTilDone: Long) {
                 secondsRemaining = msTilDone / 1000
-//                updateCountdown()
+                updateCountdownUI()
             }
         }.start()
     }
@@ -179,6 +179,7 @@ class MainActivity : AppCompatActivity() {
         val bindingCont = BindingUtil.inflateContentBinding(layoutInflater)
         val countdownText = getString(R.string.countdown_text, minTilFin, secStr)
         bindingCont.textViewCountDown.text = countdownText
+
 //          progress_countdown.progress = (timerLengthSeconds - secondsRemaining).toInt() --> I don't have a progress bar
     }
 
