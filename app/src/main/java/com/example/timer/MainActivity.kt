@@ -4,8 +4,15 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -14,9 +21,9 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.BlendModeColorFilterCompat
 import com.example.timer.databinding.ActivityMainBinding
-import com.example.timer.util.BindingUtil
 import com.example.timer.util.PrefUtil
 import java.util.Calendar
 
@@ -30,10 +37,10 @@ class MainActivity : AppCompatActivity() {
             val wakeUp = (currSec + remainSec) * 1000
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, TimerExpiredReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+
             manager.setExact(AlarmManager.RTC_WAKEUP, wakeUp, pendingIntent)
-            // todo figure out permissions
-//            if (manager.canScheduleExactAlarms()) PrefUtil.setAlarmSetTime(nowSec, context)
+
             PrefUtil.setAlarmSetTime(nowSec, context)
             return wakeUp
         }
@@ -72,8 +79,26 @@ class MainActivity : AppCompatActivity() {
 //        appBarConfiguration = AppBarConfiguration(navController.graph)
 //        setupActionBarWithNavController(navController, appBarConfiguration)
 
-        supportActionBar?.setIcon(R.drawable.ic_timer)
-        supportActionBar?.title = " Timer"
+//        supportActionBar?.setIcon(R.drawable.ic_timer)
+//        supportActionBar?.title = title
+        supportActionBar?.let {actionBar ->  
+            val drawable = ContextCompat.getDrawable(this, R.drawable.ic_timer)
+            drawable?.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP)
+//            drawable?.colorFilter = BlendModeColorFilter(ContextCompat.getColor(this, R.color.white), BlendMode.SRC_ATOP)
+//            requires higher min API level
+            actionBar.setIcon(drawable)
+        }
+
+        val title = " Timer"
+        val spannableString = SpannableString(title)
+        val textColour = ContextCompat.getColor(this, R.color.white)
+        spannableString.setSpan(
+            ForegroundColorSpan(textColour),
+            0,
+            title.length,
+            Spannable.SPAN_INCLUSIVE_INCLUSIVE
+        )
+        supportActionBar?.title = spannableString
 
         binding.fabPlay.setOnClickListener{_ ->
             startTimer()
