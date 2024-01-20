@@ -6,9 +6,10 @@ import com.example.timer.MainActivity
 
 class PrefUtil {
     companion object {
+        private const val TIMER_LENGTH_ID = "com.example.timer.timer_length"
         fun getTimerLen(context: Context): Int {
-            // placeholder
-            return 1;
+            val preferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+            return preferences.getInt(TIMER_LENGTH_ID, 1);
         }
 
         private const val PREVIOUS_TIMER_LEN_SEC_ID = "com.example.timer.previous_timer_len_id"

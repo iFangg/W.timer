@@ -14,7 +14,7 @@
         android:id="@+id/textView_countDown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="1:00"
+        tools:text="10:00"
         android:textSize="70sp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:visibility="visible"

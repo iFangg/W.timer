@@ -22,7 +22,7 @@ import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
+//    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
     companion object {
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
             val wakeUp = (currSec + remainSec) * 1000
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, TimerExpiredReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
             manager.setExact(AlarmManager.RTC_WAKEUP, wakeUp, pendingIntent)
             // todo figure out permissions
 //            if (manager.canScheduleExactAlarms()) PrefUtil.setAlarmSetTime(nowSec, context)
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = BindingUtil.inflateMainBinding(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
@@ -75,19 +75,19 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setIcon(R.drawable.ic_timer)
         supportActionBar?.title = " Timer"
 
-        binding.fabPlay.setOnClickListener{v ->
+        binding.fabPlay.setOnClickListener{_ ->
             startTimer()
             timerState = TimerState.Running
             updateButtons()
         }
 
-        binding.fabPause.setOnClickListener{v ->
+        binding.fabPause.setOnClickListener{_ ->
             timer.cancel()
             timerState = TimerState.Paused
             updateButtons()
         }
 
-        binding.fabStop.setOnClickListener{v ->
+        binding.fabStop.setOnClickListener{_ ->
             timer.cancel()
             onTimerFinished()
         }
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         initTimer()
 
         removeAlarm(this)
-        // todo... idk
+        // todo...
     }
 
     override fun onPause() {
@@ -128,7 +128,6 @@ class MainActivity : AppCompatActivity() {
         secondsRemaining = if (timerState == TimerState.Stopped) timerLengthSeconds else PrefUtil.getSecondsRemaining(this)
         val alarmSetTime = PrefUtil.getAlarmSetTime(this)
         if (alarmSetTime > 0) secondsRemaining -= nowSec - alarmSetTime
-        // todo...
         if (secondsRemaining <= 0) onTimerFinished()
         else if (timerState == TimerState.Running) startTimer()
 
@@ -174,13 +173,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateCountdownUI() {
         val minTilFin = secondsRemaining / 60
         val secInMinTilFin = secondsRemaining - minTilFin * 60
-        val secStr = secInMinTilFin.toString()
+        val secStr = String.format("%02d", secInMinTilFin)
 
-        val bindingCont = BindingUtil.inflateContentBinding(layoutInflater)
         val countdownText = getString(R.string.countdown_text, minTilFin, secStr)
-        bindingCont.textViewCountDown.text = countdownText
-
-//          progress_countdown.progress = (timerLengthSeconds - secondsRemaining).toInt() --> I don't have a progress bar
+        binding.contentMain.textViewCountDown.text = countdownText
     }
 
     private fun updateButtons() {
@@ -198,7 +194,7 @@ class MainActivity : AppCompatActivity() {
             }
             TimerState.Stopped -> {
                 binding.fabPlay.isEnabled = true
-                binding.fabPause.isEnabled = true
+                binding.fabPause.isEnabled = false
                 binding.fabStop.isEnabled = false
             }
         }
