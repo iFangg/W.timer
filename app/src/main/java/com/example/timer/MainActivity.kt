@@ -24,6 +24,7 @@ import android.view.MenuItem
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.BlendModeColorFilterCompat
 import com.example.timer.databinding.ActivityMainBinding
+import com.example.timer.util.NotifUtil
 import com.example.timer.util.PrefUtil
 import java.util.Calendar
 
@@ -48,13 +49,12 @@ class MainActivity : AppCompatActivity() {
         fun removeAlarm(context: Context) {
             val intent = Intent(context, TimerExpiredReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-            // todo: double check flags
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             manager.cancel(pendingIntent)
             PrefUtil.setAlarmSetTime(0, context)
         }
 
-        private val nowSec: Long
+        val nowSec: Long
             get() = Calendar.getInstance().timeInMillis / 1000
     }
 
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             val drawable = ContextCompat.getDrawable(this, R.drawable.ic_timer)
             drawable?.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP)
 //            drawable?.colorFilter = BlendModeColorFilter(ContextCompat.getColor(this, R.color.white), BlendMode.SRC_ATOP)
-//            requires higher min API level
+//           ^^^ Requires higher min API level ^^^
             actionBar.setIcon(drawable)
         }
 
@@ -99,6 +99,7 @@ class MainActivity : AppCompatActivity() {
             Spannable.SPAN_INCLUSIVE_INCLUSIVE
         )
         supportActionBar?.title = spannableString
+
 
         binding.fabPlay.setOnClickListener{_ ->
             startTimer()
@@ -123,18 +124,18 @@ class MainActivity : AppCompatActivity() {
         initTimer()
 
         removeAlarm(this)
-        // todo...
+        NotifUtil.hideTimerNotif(this)
     }
 
     override fun onPause() {
         super.onPause()
 
+        val wakeUp = setAlarm(this, nowSec, secondsRemaining)
         if (timerState == TimerState.Running) {
             timer.cancel()
-            val wakeUp = setAlarm(this, nowSec, secondsRemaining)
-            // todo...
+            NotifUtil.showTimerRunning(this, wakeUp)
         } else if (timerState == TimerState.Paused) {
-            // todo...
+            NotifUtil.showTimerPaused(this, wakeUp)
         }
 
         PrefUtil.setPrevLenSeconds(timerLengthSeconds, this)
