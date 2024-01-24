@@ -115,7 +115,6 @@ class NotifUtil {
 //        @TargetApi(24)
         private fun NotificationManager.createNotificationChannel(channelID: String, channelName: String, playSound: Boolean) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                println("hello!!")
                 val channelImportance = if (playSound) NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_LOW
                 val nChannel = NotificationChannel(channelID, channelName, channelImportance)
                 nChannel.enableLights(true)
