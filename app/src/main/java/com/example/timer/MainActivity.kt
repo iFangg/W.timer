@@ -134,6 +134,7 @@ class MainActivity : AppCompatActivity() {
         if (timerState == TimerState.Running) {
             timer.cancel()
             NotifUtil.showTimerRunning(this, wakeUp)
+            println("showing notifications!")
         } else if (timerState == TimerState.Paused) {
             NotifUtil.showTimerPaused(this, wakeUp)
         }

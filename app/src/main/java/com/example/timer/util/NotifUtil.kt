@@ -17,14 +17,36 @@ import com.example.timer.Constants
 import com.example.timer.MainActivity
 import com.example.timer.NotificationActionReceiver
 import com.example.timer.R
+import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class NotifUtil {
     companion object {
         private const val CHANNEL_ID_TIMER = "menu_timer"
         private const val CHANNEL_NAME_TIMER = "App timer"
         private const val TIMER_ID = 0
+
+        private fun formatTime(milliseconds: Long): String {
+            val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
+            val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) % 60
+
+            val format = when {
+                hours > 0 -> DateFormat.getTimeInstance(DateFormat.LONG, Locale.getDefault())
+                else -> DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.getDefault())
+            }
+
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.HOUR_OF_DAY, hours.toInt())
+            calendar.set(Calendar.MINUTE, minutes.toInt())
+            calendar.set(Calendar.SECOND, seconds.toInt())
+
+            return format.format(calendar.time)
+        }
 
         fun showTimerExpired(context: Context) {
             val startIntent = Intent(context, NotificationActionReceiver::class.java)
@@ -43,6 +65,7 @@ class NotifUtil {
         }
 
         fun showTimerRunning(context: Context, wakeupTime: Long) {
+            println("hihi!")
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
             stopIntent.action = Constants.ACTION_STOP
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -52,10 +75,9 @@ class NotifUtil {
             val pendingPauseIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
             val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
-
             val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, true)
             nBuilder.setContentTitle("Timer is Running")
-                .setContentText("End: ${df.format(Date(wakeupTime))}")
+                .setContentText("End: ${df.format(Date(wakeupTime))} (in ${formatTime(wakeupTime)})")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_stop, "Stop", pendingStopIntent)
@@ -66,6 +88,7 @@ class NotifUtil {
             nManager.notify(TIMER_ID, nBuilder.build())
         }
 
+
         fun showTimerPaused(context: Context, wakeupTime: Long){
             val resumeIntent = Intent(context, NotificationActionReceiver::class.java)
             resumeIntent.action = Constants.ACTION_RESUME
@@ -75,7 +98,7 @@ class NotifUtil {
             val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
             val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, true)
             nBuilder.setContentTitle("Timer is paused.")
-                .setContentText("${df.format(Date(wakeupTime))} remaining, resume?")
+                .setContentText("${formatTime(wakeupTime)}  remaining, resume?")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_play, "Resume", resumePendingIntent)
@@ -112,7 +135,7 @@ class NotifUtil {
             return stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
         }
 
-//        @TargetApi(24)
+//        @TargetApi(26)
         private fun NotificationManager.createNotificationChannel(channelID: String, channelName: String, playSound: Boolean) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channelImportance = if (playSound) NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_LOW

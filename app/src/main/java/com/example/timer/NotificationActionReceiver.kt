@@ -36,11 +36,10 @@ class NotificationActionReceiver: BroadcastReceiver() {
             }
 
             Constants.ACTION_START -> {
-                val minLeft = PrefUtil.getTimerLen(context)
-                val secLeft = minLeft * 60L
-                val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secLeft)
+                val secsLeft = PrefUtil.getTimerLen(context) * 60L
+                val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
                 PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
-                PrefUtil.setSecondsRemaining(secLeft, context)
+                PrefUtil.setSecondsRemaining(secsLeft, context)
                 NotifUtil.showTimerRunning(context, wakeup)
             }
         }
