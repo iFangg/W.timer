@@ -34,7 +34,7 @@ class NotifUtil {
             val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
             val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
             val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) % 60
-
+        // todo change format to HH:MM:SSs
             val format = when {
                 hours > 0 -> DateFormat.getTimeInstance(DateFormat.LONG, Locale.getDefault())
                 else -> DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.getDefault())
