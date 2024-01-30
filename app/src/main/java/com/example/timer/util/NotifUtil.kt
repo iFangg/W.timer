@@ -30,22 +30,20 @@ class NotifUtil {
         private const val CHANNEL_NAME_TIMER = "App timer"
         private const val TIMER_ID = 0
 
-        private fun formatTime(milliseconds: Long): String {
-            val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) % 60
-        // todo change format to HH:MM:SSs
-            val format = when {
-                hours > 0 -> DateFormat.getTimeInstance(DateFormat.LONG, Locale.getDefault())
-                else -> DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.getDefault())
-            }
+        private fun formatTime(secs: Long): String {
+            println(secs)
+            val hours = secs / 3600
+            val minutes = secs / 60
+            println("$hours, $minutes, $secs")
+        // todo change format to HH:MM:SS
+            val format = SimpleDateFormat("HH:mm:ss", Locale.US)
 
-            val calendar = Calendar.getInstance()
-            calendar.set(Calendar.HOUR_OF_DAY, hours.toInt())
-            calendar.set(Calendar.MINUTE, minutes.toInt())
-            calendar.set(Calendar.SECOND, seconds.toInt())
+            var formattedString = ""
+            if (hours > 0) formattedString += "%02d:".format(hours)
+            if (minutes > 0) formattedString += "%02d:".format(minutes)
+            formattedString += "%02d".format(secs)
 
-            return format.format(calendar.time)
+            return formattedString
         }
 
         fun showTimerExpired(context: Context) {
@@ -65,7 +63,6 @@ class NotifUtil {
         }
 
         fun showTimerRunning(context: Context, wakeupTime: Long) {
-            println("hihi!")
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
             stopIntent.action = Constants.ACTION_STOP
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -80,8 +77,8 @@ class NotifUtil {
                 .setContentText("End: ${df.format(Date(wakeupTime))} (in ${formatTime(wakeupTime)})")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
-                .addAction(R.drawable.ic_stop, "Stop", pendingStopIntent)
                 .addAction(R.drawable.ic_pause, "Pause", pendingPauseIntent)
+                .addAction(R.drawable.ic_stop, "Stop", pendingStopIntent)
 
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
@@ -95,13 +92,18 @@ class NotifUtil {
             val resumePendingIntent = PendingIntent.getBroadcast(context,
                 0, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
-            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
+            val stopIntent = Intent(context, NotificationActionReceiver::class.java)
+            stopIntent.action = Constants.ACTION_STOP
+            val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+
+//            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
             val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, true)
             nBuilder.setContentTitle("Timer is paused.")
-                .setContentText("${formatTime(wakeupTime)}  remaining, resume?")
+                .setContentText("${formatTime(wakeupTime)} remaining, resume?")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_play, "Resume", resumePendingIntent)
+                .addAction(R.drawable.ic_stop, "Stop", pendingStopIntent)
 
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
