@@ -20,7 +20,7 @@ class NotificationActionReceiver: BroadcastReceiver() {
             }
 
             Constants.ACTION_PAUSE -> {
-                var secsLeft = PrefUtil.getSecondsRemaining(context)
+                val secsLeft = PrefUtil.getSecondsRemaining(context)
                 val alarmSetTime = PrefUtil.getTimerLen(context) * 60
                 val nowSec = MainActivity.nowSec
 

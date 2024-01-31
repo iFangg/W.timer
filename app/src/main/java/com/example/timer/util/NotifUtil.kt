@@ -53,7 +53,7 @@ class NotifUtil {
             tickingRunnable = object : Runnable {
                 override fun run() {
                     val secsLeft = PrefUtil.getSecondsRemaining(context)
-                    if (secsLeft < 0) {
+                    if (secsLeft < 0 || PrefUtil.getTimerState(context) != MainActivity.TimerState.Running) {
                         stopTickingNotifs(context)
                         return
                     }
@@ -78,7 +78,7 @@ class NotifUtil {
             tickingRunnable?.let {
                 Handler(Looper.getMainLooper()).removeCallbacks(it)
                 tickingRunnable = null
-                showTimerExpired(context)
+                if (PrefUtil.getTimerState(context) === MainActivity.TimerState.Stopped) showTimerExpired(context)
             }
         }
 
@@ -154,6 +154,7 @@ class NotifUtil {
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
 
             nManager.notify(TIMER_ID, nBuilder.build())
+            stopTickingNotifs(context)
         }
 
         fun hideTimerNotif(context: Context) {
