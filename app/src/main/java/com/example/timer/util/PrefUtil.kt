@@ -35,7 +35,7 @@ class PrefUtil {
         }
 
         fun setTimerState(state: MainActivity.TimerState, context: Context) {
-            Exception().printStackTrace()
+//            Exception().printStackTrace()
             println("before: ${getTimerState(context)}")
             val editor = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context).edit()
             val ordinal = state.ordinal

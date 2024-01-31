@@ -15,16 +15,18 @@ class NotificationActionReceiver: BroadcastReceiver() {
             Constants.ACTION_STOP -> {
                 MainActivity.removeAlarm(context)
                 PrefUtil.setTimerState(MainActivity.TimerState.Stopped, context)
+//                NotifUtil.stopTickingNotifs(context)
                 NotifUtil.hideTimerNotif(context)
             }
 
             Constants.ACTION_PAUSE -> {
                 var secsLeft = PrefUtil.getSecondsRemaining(context)
-                val alarmSetTime = PrefUtil.getAlarmSetTime(context)
+                val alarmSetTime = PrefUtil.getTimerLen(context) * 60
                 val nowSec = MainActivity.nowSec
 
-                secsLeft -= nowSec - alarmSetTime
-                println("secsLeft: $secsLeft")
+                println("secsLeft: $secsLeft ($nowSec - $alarmSetTime)")
+//                secsLeft -= nowSec - alarmSetTime
+//                println("secsLeft: $secsLeft ($nowSec - $alarmSetTime)")
                 PrefUtil.setSecondsRemaining(secsLeft, context)
 
                 MainActivity.removeAlarm(context)
