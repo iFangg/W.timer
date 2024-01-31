@@ -1,8 +1,11 @@
 package com.example.timer
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.CountDownTimer
 import com.example.timer.util.NotifUtil
 import com.example.timer.util.PrefUtil
 
@@ -21,9 +24,15 @@ class NotificationActionReceiver: BroadcastReceiver() {
                 val nowSec = MainActivity.nowSec
 
                 secsLeft -= nowSec - alarmSetTime
+                println("secsLeft: $secsLeft")
                 PrefUtil.setSecondsRemaining(secsLeft, context)
 
                 MainActivity.removeAlarm(context)
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val pauseIntent = Intent(context, TimerExpiredReceiver::class.java)
+                val pendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+                alarmManager.cancel(pendingIntent)
+
                 PrefUtil.setTimerState(MainActivity.TimerState.Paused, context)
                 NotifUtil.showTimerPaused(context, secsLeft)
             }
@@ -32,15 +41,16 @@ class NotificationActionReceiver: BroadcastReceiver() {
                 val secsLeft = PrefUtil.getSecondsRemaining(context)
                 val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
                 PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
-                NotifUtil.showTimerRunning(context, wakeup)
+                NotifUtil.showTimerRunning(context, secsLeft)
             }
 
             Constants.ACTION_START -> {
                 val secsLeft = PrefUtil.getTimerLen(context) * 60L
+//                println("Seconds left $secsLeft")
                 val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
                 PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
                 PrefUtil.setSecondsRemaining(secsLeft, context)
-                NotifUtil.showTimerRunning(context, wakeup)
+                NotifUtil.showTimerRunning(context, secsLeft)
             }
         }
     }

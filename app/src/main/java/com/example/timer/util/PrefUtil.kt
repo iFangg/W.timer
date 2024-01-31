@@ -1,6 +1,7 @@
 package com.example.timer.util
 
 import android.content.Context
+import android.util.Log
 import androidx.preference.PreferenceManager
 import com.example.timer.MainActivity
 
@@ -34,10 +35,13 @@ class PrefUtil {
         }
 
         fun setTimerState(state: MainActivity.TimerState, context: Context) {
+            Exception().printStackTrace()
+            println("before: ${getTimerState(context)}")
             val editor = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context).edit()
             val ordinal = state.ordinal
             editor.putInt(TIMER_STATE_ID, ordinal)
             editor.apply()
+            println("after: ${getTimerState(context)}")
         }
 
         private const val SECONDS_REMAINING_ID = "com.example.timer.seconds_remaining"

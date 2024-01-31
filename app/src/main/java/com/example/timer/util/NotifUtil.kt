@@ -30,18 +30,20 @@ class NotifUtil {
         private const val CHANNEL_NAME_TIMER = "App timer"
         private const val TIMER_ID = 0
 
-        private fun formatTime(secs: Long): String {
-            println(secs)
-            val hours = secs / 3600
-            val minutes = secs / 60
+        private fun formatTime(seconds: Long): String {
+            println(seconds)
+            val hours = seconds / 3600
+            val minutes = seconds / 60
+            val secs = seconds % 60
             println("$hours, $minutes, $secs")
         // todo change format to HH:MM:SS
             val format = SimpleDateFormat("HH:mm:ss", Locale.US)
 
+            if (hours > 0) return "%02d:%02d:%02d".format(hours, minutes, secs)
             var formattedString = ""
-            if (hours > 0) formattedString += "%02d:".format(hours)
             if (minutes > 0) formattedString += "%02d:".format(minutes)
             formattedString += "%02d".format(secs)
+            if (minutes <= 0) formattedString += " seconds"
 
             return formattedString
         }
@@ -63,6 +65,7 @@ class NotifUtil {
         }
 
         fun showTimerRunning(context: Context, wakeupTime: Long) {
+            println("running time: $wakeupTime")
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
             stopIntent.action = Constants.ACTION_STOP
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)

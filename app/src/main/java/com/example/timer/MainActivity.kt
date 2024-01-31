@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         fun setAlarm(context: Context, currSec: Long, remainSec: Long): Long {
             val wakeUp = (currSec + remainSec) * 1000
+            println("wakeup: $wakeUp")
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, TimerExpiredReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         Stopped, Paused, Running
     }
 
-    private lateinit var timer: CountDownTimer
+    lateinit var timer: CountDownTimer
     private var timerLengthSeconds: Long = 0
     private var timerState: TimerState = TimerState.Stopped
     private var secondsRemaining: Long = 0
@@ -129,14 +130,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-
         val wakeUp = setAlarm(this, nowSec, secondsRemaining)
         if (timerState == TimerState.Running) {
+        // todo change notifcations to update as the timer ticks
             timer.cancel()
-            NotifUtil.showTimerRunning(this, wakeUp)
-            println("showing notifications!")
+            NotifUtil.showTimerRunning(this, secondsRemaining)
         } else if (timerState == TimerState.Paused) {
-            NotifUtil.showTimerPaused(this, wakeUp)
+            NotifUtil.showTimerPaused(this, secondsRemaining)
         }
 
         PrefUtil.setPrevLenSeconds(timerLengthSeconds, this)
@@ -163,6 +163,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onTimerFinished() {
+        println("I was stopped")
         timerState = TimerState.Stopped
         setNewTimerLength()
 //        progress_countdown.progress = 0
