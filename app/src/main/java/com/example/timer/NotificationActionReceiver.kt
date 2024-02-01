@@ -16,7 +16,8 @@ class NotificationActionReceiver: BroadcastReceiver() {
                 MainActivity.removeAlarm(context)
                 PrefUtil.setTimerState(MainActivity.TimerState.Stopped, context)
 //                NotifUtil.stopTickingNotifs(context)
-                NotifUtil.hideTimerNotif(context)
+//                NotifUtil.hideTimerNotif(context)
+                NotifUtil.showTimerExpired(context)
             }
 
             Constants.ACTION_PAUSE -> {
