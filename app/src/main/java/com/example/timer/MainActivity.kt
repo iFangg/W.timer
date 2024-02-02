@@ -132,7 +132,6 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         val wakeUp = setAlarm(this, nowSec, secondsRemaining)
         if (timerState == TimerState.Running) {
-        // todo change notifcations to update as the timer ticks
             timer.cancel()
             NotifUtil.showTimerRunning(this, secondsRemaining)
         } else if (timerState == TimerState.Paused) {

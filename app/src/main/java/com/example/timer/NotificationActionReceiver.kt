@@ -12,12 +12,11 @@ import com.example.timer.util.PrefUtil
 class NotificationActionReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-            Constants.ACTION_STOP -> {
+            Constants.ACTION_HIDE, Constants.ACTION_STOP -> {
                 MainActivity.removeAlarm(context)
                 PrefUtil.setTimerState(MainActivity.TimerState.Stopped, context)
-//                NotifUtil.stopTickingNotifs(context)
-//                NotifUtil.hideTimerNotif(context)
-                NotifUtil.showTimerExpired(context)
+                if (intent.action == Constants.ACTION_HIDE) NotifUtil.hideTimerNotif(context)
+                else NotifUtil.showTimerExpired(context)
             }
 
             Constants.ACTION_PAUSE -> {

@@ -26,10 +26,8 @@ class NotifUtil {
         private const val CHANNEL_ID_TIMER = "menu_timer"
         private const val CHANNEL_NAME_TIMER = "App timer"
         private const val TIMER_ID = 0
-        private const val UPDATE_INTERVAL_MILLIS = 1000L
-        private var tickingRunnable: Runnable? = null
-//        private lateinit var nBuilder: NotificationCompat.Builder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, true)
-//        private lateinit var nManager: NotificationManager
+//        private const val UPDATE_INTERVAL_MILLIS = 1000L
+//        private var tickingRunnable: Runnable? = null
 
         private fun formatTime(seconds: Long): String {
 //            println(seconds)
@@ -48,43 +46,9 @@ class NotifUtil {
             return formattedString
         }
 
-        private fun scheduleTickingNotifUpdates(context: Context, nBuilder: NotificationCompat.Builder, nManager: NotificationManager, wakeupTime: Long) {
-            val handler = Handler(Looper.getMainLooper())
-            tickingRunnable = object : Runnable {
-                override fun run() {
-                    val secsLeft = PrefUtil.getSecondsRemaining(context)
-                    if (secsLeft < 0 || PrefUtil.getTimerState(context) != MainActivity.TimerState.Running) {
-                        stopTickingNotifs(context)
-                        return
-                    }
-
-                    val nextSec = secsLeft - UPDATE_INTERVAL_MILLIS / 1000
-                    println("secs left ${PrefUtil.getSecondsRemaining(context)}")
-                    // Update the notification content
-                    nBuilder.setContentText("End: ${SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(Date(wakeupTime))} (in ${formatTime(secsLeft)})")
-                    PrefUtil.setSecondsRemaining(nextSec, context)
-                    PrefUtil.setPrevLenSeconds(nextSec, context)
-                    nManager.notify(TIMER_ID, nBuilder.build())
-
-                    // Schedule the next update
-                    handler.postDelayed(this, UPDATE_INTERVAL_MILLIS)
-                }
-            }
-
-            handler.postDelayed(tickingRunnable as Runnable, UPDATE_INTERVAL_MILLIS)
-        }
-
-        private fun stopTickingNotifs(context: Context) {
-            println("stop!!")
-            tickingRunnable?.let {
-                Handler(Looper.getMainLooper()).removeCallbacks(it)
-                tickingRunnable = null
-                if (PrefUtil.getTimerState(context) === MainActivity.TimerState.Stopped) showTimerExpired(context)
-            }
-        }
-
         fun showTimerRunning(context: Context, wakeupTime: Long) {
             println("running time: $wakeupTime")
+            val timerRunningId = 1
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
             stopIntent.action = Constants.ACTION_STOP
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -94,7 +58,7 @@ class NotifUtil {
             val pendingPauseIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
             val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
-            val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, false)
+            val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is Running")
                 .setContentText("End: ${df.format(Date(wakeupTime))} (in ${formatTime(wakeupTime)})")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
@@ -104,30 +68,13 @@ class NotifUtil {
 
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, false)
-//            nManager.notify(TIMER_ID, nBuilder.build())
-            nBuilder.setSound(null)
 
             PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
-            scheduleTickingNotifUpdates(context, nBuilder, nManager, wakeupTime)
-        }
-
-        fun showTimerExpired(context: Context) {
-            val startIntent = Intent(context, NotificationActionReceiver::class.java)
-            startIntent.action = Constants.ACTION_START
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-            val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, true)
-            nBuilder.setContentTitle("Timer Expired!")
-                .setContentText("Start Again?")
-                .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
-                .addAction(R.drawable.ic_play, "Start", pendingIntent)
-
-            val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
-
             nManager.notify(TIMER_ID, nBuilder.build())
         }
 
         fun showTimerPaused(context: Context, wakeupTime: Long){
+            val timerPausedId = 2
             val resumeIntent = Intent(context, NotificationActionReceiver::class.java)
             resumeIntent.action = Constants.ACTION_RESUME
             val resumePendingIntent = PendingIntent.getBroadcast(context,
@@ -138,7 +85,7 @@ class NotifUtil {
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
 //            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
-            val nBuilder = getBasicNotificationBuilder(context, CHANNEL_ID_TIMER, false)
+            val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is paused.")
                 .setContentText("${formatTime(wakeupTime)} remaining, resume?")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
@@ -150,22 +97,47 @@ class NotifUtil {
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
 
             nManager.notify(TIMER_ID, nBuilder.build())
-            stopTickingNotifs(context)
+        }
+
+        fun showTimerExpired(context: Context) {
+            val timerExpiredId = 3
+            val startIntent = Intent(context, NotificationActionReceiver::class.java)
+            startIntent.action = Constants.ACTION_START
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+
+            val hideIntent = Intent(context, NotificationActionReceiver::class.java)
+            hideIntent.action = Constants.ACTION_HIDE
+            val pendingHideIntent = PendingIntent.getBroadcast(context, 0, hideIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+
+            val nBuilder = getBasicNotificationBuilder(context, true)
+            nBuilder.setContentTitle("Timer Expired!")
+                .setContentText("Start Again?")
+                .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
+                .addAction(R.drawable.ic_play, "Start", pendingIntent)
+                .addAction(R.drawable.ic_cross, "Hide", pendingHideIntent)
+
+            val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
+
+            nManager.notify(TIMER_ID, nBuilder.build())
         }
 
         fun hideTimerNotif(context: Context) {
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            stopTickingNotifs(context)
             nManager.cancel(TIMER_ID)
         }
 
-        private fun getBasicNotificationBuilder(context: Context, channelId: String, playSound: Boolean): NotificationCompat.Builder {
+        private fun getBasicNotificationBuilder(context: Context, playSound: Boolean): NotificationCompat.Builder {
             val notifSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            val nBuilder = NotificationCompat.Builder(context, channelId)
+            val fullscreenIntent = Intent(context, NotificationActionReceiver::class.java)
+            val fullscreenPendingIntent = PendingIntent.getActivity(context, 0, fullscreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+            val nBuilder = NotificationCompat.Builder(context, CHANNEL_ID_TIMER)
                 .setSmallIcon(R.drawable.ic_timer)
                 .setAutoCancel(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setDefaults(0)
+                .setFullScreenIntent(fullscreenPendingIntent, true)
+                .setOnlyAlertOnce(true)
             if (playSound) nBuilder.setSound(notifSound)
             return nBuilder
         }
