@@ -21,6 +21,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.BlendModeColorFilterCompat
 import com.example.timer.databinding.ActivityMainBinding
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         fun setAlarm(context: Context, currSec: Long, remainSec: Long): Long {
-            val wakeUp = (currSec + remainSec) * 1000
+            val wakeUp = (currSec + remainSec)
             println("wakeup: $wakeUp")
             val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, TimerExpiredReceiver::class.java)
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val nowSec: Long
-            get() = Calendar.getInstance().timeInMillis / 1000
+            get() = Calendar.getInstance().timeInMillis
     }
 
     enum class TimerState {
@@ -131,9 +132,14 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         val wakeUp = setAlarm(this, nowSec, secondsRemaining)
+        println("nowSec: $nowSec")
         if (timerState == TimerState.Running) {
             timer.cancel()
+            // todo figure out if you want the timer to go off clock time or calculation time
             NotifUtil.showTimerRunning(this, secondsRemaining)
+//            while (timerState == TimerState.Running) {
+//                NotificationManagerCompat.notify(NotifUtil.TIMER_NOTIF_ID, notif)
+//            }
         } else if (timerState == TimerState.Paused) {
             NotifUtil.showTimerPaused(this, secondsRemaining)
         }

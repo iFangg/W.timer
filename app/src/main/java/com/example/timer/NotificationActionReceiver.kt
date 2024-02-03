@@ -52,7 +52,7 @@ class NotificationActionReceiver: BroadcastReceiver() {
                 val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
                 PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
                 PrefUtil.setSecondsRemaining(secsLeft, context)
-                NotifUtil.showTimerRunning(context, secsLeft)
+                NotifUtil.showTimerRunning(context, wakeup)
             }
         }
     }
