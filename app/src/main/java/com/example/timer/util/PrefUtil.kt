@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.example.timer.MainActivity
+import com.example.timer.Timer
 
 class PrefUtil {
     companion object {
@@ -28,13 +29,13 @@ class PrefUtil {
 
         private const val TIMER_STATE_ID = "com.example.timer.timer_state"
 
-        fun getTimerState(context: Context): MainActivity.TimerState {
+        fun getTimerState(context: Context): Timer.TimerState {
             val preferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
             val ordinal = preferences.getInt(TIMER_STATE_ID, 0)
-            return MainActivity.TimerState.entries[ordinal]
+            return Timer.TimerState.entries[ordinal]
         }
 
-        fun setTimerState(state: MainActivity.TimerState, context: Context) {
+        fun setTimerState(state: Timer.TimerState, context: Context) {
 //            Exception().printStackTrace()
             println("before: ${getTimerState(context)}")
             val editor = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context).edit()

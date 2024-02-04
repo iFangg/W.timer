@@ -29,45 +29,11 @@ import com.example.timer.util.NotifUtil
 import com.example.timer.util.PrefUtil
 import java.util.Calendar
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Subscriber {
 
 //    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-
-    companion object {
-        fun setAlarm(context: Context, currSec: Long, remainSec: Long): Long {
-            val wakeUp = (currSec + remainSec)
-            println("wakeup: $wakeUp")
-            val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val intent = Intent(context, TimerExpiredReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-
-            manager.setExact(AlarmManager.RTC_WAKEUP, wakeUp, pendingIntent)
-
-            PrefUtil.setAlarmSetTime(nowSec, context)
-            return wakeUp
-        }
-
-        fun removeAlarm(context: Context) {
-            val intent = Intent(context, TimerExpiredReceiver::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-            val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            manager.cancel(pendingIntent)
-            PrefUtil.setAlarmSetTime(0, context)
-        }
-
-        val nowSec: Long
-            get() = Calendar.getInstance().timeInMillis
-    }
-
-    enum class TimerState {
-        Stopped, Paused, Running
-    }
-
-    lateinit var timer: CountDownTimer
-    private var timerLengthSeconds: Long = 0
-    private var timerState: TimerState = TimerState.Stopped
-    private var secondsRemaining: Long = 0
+    val timer = Timer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,130 +68,83 @@ class MainActivity : AppCompatActivity() {
         )
         supportActionBar?.title = spannableString
 
-
         binding.fabPlay.setOnClickListener{_ ->
-            startTimer()
-            timerState = TimerState.Running
-            updateButtons()
+            PrefUtil.setTimerState(Timer.TimerState.Running, this)
+            timer.startTimer()
+//            startTimer()
         }
 
         binding.fabPause.setOnClickListener{_ ->
-            timer.cancel()
-            timerState = TimerState.Paused
-            updateButtons()
+            PrefUtil.setTimerState(Timer.TimerState.Paused, this)
+            timer.stopTimer()
+//            updateButtons()
         }
 
         binding.fabStop.setOnClickListener{_ ->
-            timer.cancel()
-            onTimerFinished()
+            timer.onTimerFinished()
+//            onTimerFinished()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        initTimer()
+        timer.initTimer()
 
-        removeAlarm(this)
+        TimerController.removeAlarm(this)
         NotifUtil.hideTimerNotif(this)
     }
 
     override fun onPause() {
         super.onPause()
-        val wakeUp = setAlarm(this, nowSec, secondsRemaining)
-        println("nowSec: $nowSec")
-        if (timerState == TimerState.Running) {
-            timer.cancel()
-            // todo figure out if you want the timer to go off clock time or calculation time
-            NotifUtil.showTimerRunning(this, secondsRemaining)
-//            while (timerState == TimerState.Running) {
-//                NotificationManagerCompat.notify(NotifUtil.TIMER_NOTIF_ID, notif)
-//            }
-        } else if (timerState == TimerState.Paused) {
-            NotifUtil.showTimerPaused(this, secondsRemaining)
+        val secondsRemaining = Timer.getSecondsRemaining()
+        val wakeUp = TimerController.setAlarm(this, Timer.nowSec, secondsRemaining)
+        println("seconds remaining: $secondsRemaining")
+        val timerState = PrefUtil.getTimerState(this)
+        if (timerState == Timer.TimerState.Running) {
+//            timer.stopTimer()
+            NotifUtil.showTimerRunning(this, wakeUp)
+        } else if (timerState == Timer.TimerState.Paused) {
+            NotifUtil.showTimerPaused(this, Timer.getSecondsRemaining())
         }
 
-        PrefUtil.setPrevLenSeconds(timerLengthSeconds, this)
-        PrefUtil.setSecondsRemaining(secondsRemaining, this)
+        PrefUtil.setPrevLenSeconds(Timer.getTimerLenSeconds(), this)
+        PrefUtil.setSecondsRemaining(Timer.getSecondsRemaining(), this)
         PrefUtil.setTimerState(timerState, this)
     }
 
-    private fun initTimer() {
-        timerState = PrefUtil.getTimerState(this)
-        if (timerState == TimerState.Stopped) {
-            setNewTimerLength()
-        } else {
-            setPreviousTimerLength()
-        }
-
-        secondsRemaining = if (timerState == TimerState.Stopped) timerLengthSeconds else PrefUtil.getSecondsRemaining(this)
-        val alarmSetTime = PrefUtil.getAlarmSetTime(this)
-        if (alarmSetTime > 0) secondsRemaining -= nowSec - alarmSetTime
-        if (secondsRemaining <= 0) onTimerFinished()
-        else if (timerState == TimerState.Running) startTimer()
-
-        updateButtons()
+    override fun update() {
         updateCountdownUI()
-    }
-
-    private fun onTimerFinished() {
-        println("I was stopped")
-        timerState = TimerState.Stopped
-        setNewTimerLength()
-//        progress_countdown.progress = 0
-
-        PrefUtil.setSecondsRemaining(timerLengthSeconds, this)
-        secondsRemaining = timerLengthSeconds
-
         updateButtons()
-        updateCountdownUI()
-    }
-
-    private fun startTimer() {
-        timerState = TimerState.Running
-
-        timer = object : CountDownTimer(secondsRemaining * 1000, 1000) {
-            override fun onFinish() = onTimerFinished()
-            override fun onTick(msTilDone: Long) {
-                secondsRemaining = msTilDone / 1000
-                updateCountdownUI()
-            }
-        }.start()
-    }
-
-    private fun setNewTimerLength() {
-        val lenMin = PrefUtil.getTimerLen(this)
-        timerLengthSeconds = (lenMin * 60L)
-//        progress_countdown.max = timerLengthSeconds.toInt()
-    }
-
-    private fun setPreviousTimerLength() {
-        timerLengthSeconds = PrefUtil.getPrevTimerLenSeconds(this)
-//        progress_countdown.max = timerLengthSeconds.toInt()
     }
 
     private fun updateCountdownUI() {
+        val secondsRemaining = Timer.getSecondsRemaining()
         val minTilFin = secondsRemaining / 60
         val secInMinTilFin = secondsRemaining - minTilFin * 60
         val secStr = String.format("%02d", secInMinTilFin)
 
         val countdownText = getString(R.string.countdown_text, minTilFin, secStr)
         binding.contentMain.textViewCountDown.text = countdownText
+        // todo: add for notification
+        if (!timer.getInAppStatus()) {
+            NotifUtil.showTimerRunning(this, TimerController.getWakeUpTime())
+        }
     }
 
     private fun updateButtons() {
         // refactor?
-        when (timerState) {
-            TimerState.Running -> {
+        when (PrefUtil.getTimerState(this)) {
+            Timer.TimerState.Running -> {
                 binding.fabPlay.isEnabled = false
                 binding.fabPause.isEnabled = true
                 binding.fabStop.isEnabled = true
             }
-            TimerState.Paused -> {
+            Timer.TimerState.Paused -> {
                 binding.fabPlay.isEnabled = true
                 binding.fabPause.isEnabled = false
                 binding.fabStop.isEnabled = true
             }
-            TimerState.Stopped -> {
+            else -> {
                 binding.fabPlay.isEnabled = true
                 binding.fabPause.isEnabled = false
                 binding.fabStop.isEnabled = false

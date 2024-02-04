@@ -13,16 +13,18 @@ class NotificationActionReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             Constants.ACTION_HIDE, Constants.ACTION_STOP -> {
-                MainActivity.removeAlarm(context)
-                PrefUtil.setTimerState(MainActivity.TimerState.Stopped, context)
+                TimerController.removeAlarm(context)
+                PrefUtil.setTimerState(Timer.TimerState.Stopped, context)
                 if (intent.action == Constants.ACTION_HIDE) NotifUtil.hideTimerNotif(context)
                 else NotifUtil.showTimerExpired(context)
             }
 
             Constants.ACTION_PAUSE -> {
+                '[=
+                '
                 val secsLeft = PrefUtil.getSecondsRemaining(context)
                 val alarmSetTime = PrefUtil.getTimerLen(context) * 60
-                val nowSec = MainActivity.nowSec
+                val nowSec = Timer.nowSec
 
                 println("secsLeft: $secsLeft ($nowSec - $alarmSetTime)")
 //                secsLeft -= nowSec - alarmSetTime

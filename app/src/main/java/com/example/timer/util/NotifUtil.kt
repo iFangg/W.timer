@@ -12,11 +12,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.CountDownTimer
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.example.timer.Constants
 import com.example.timer.MainActivity
+//import com.example.timer.MainActivity
 import com.example.timer.NotificationActionReceiver
 import com.example.timer.R
+import com.example.timer.Timer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,6 +47,7 @@ class NotifUtil {
             return formattedString
         }
 
+        //todo USE SAME COUNTDOWN TIMER AS MAIN
         fun showTimerRunning(context: Context, wakeupTime: Long) {
             println("running time: $wakeupTime")
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
@@ -56,7 +58,6 @@ class NotifUtil {
             pauseIntent.action = Constants.ACTION_PAUSE
             val pendingPauseIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
-            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
             val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is Running")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
@@ -67,62 +68,11 @@ class NotifUtil {
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
 
-            val countDownTimer = object : CountDownTimer((wakeupTime + PrefUtil.getSecondsRemaining(context)) * 1000, 1000) {
-                private var started = true
-                override fun onTick(secondsRemaining: Long) {
-                    println("$wakeupTime")
-                    println("${secondsRemaining}s remaining")
-                    val state = PrefUtil.getTimerState(context)
-                    println("state is: $state")
-                    if (state != MainActivity.TimerState.Running) {
-                        started = false
-                        when (state) {
-                            MainActivity.TimerState.Paused -> {
-                                pauseTimer()
-                                return
-                            }
-
-                            else -> {
-                                onFinish()
-                                return
-                            }
-                        }
-                    } else {
-                        if (!started) {
-                            started = true
-                            resumeTimer()
-                        }
-                        // Update the countdown in the notification text
-                        nBuilder.setContentText("End: ${df.format(Date(wakeupTime))} (in ${formatTime(secondsRemaining)})")
-                        PrefUtil.setSecondsRemaining(secondsRemaining, context)
-    //                    NotificationManagerCompat.notify()
-                        nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
-                    }
-                }
-
-                override fun onFinish() {
-                    Exception().printStackTrace()
-                    cancel()
-                    showTimerExpired(context)
-                }
-
-                fun pauseTimer() {
-                    cancel()
-                    showTimerPaused(context, PrefUtil.getSecondsRemaining(context))
-                }
-
-                fun resumeTimer() {
-                    started = true
-                    showTimerRunning(context, wakeupTime)
-                }
-            }
-
-            PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
-//            nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
-            countDownTimer.start()
+            PrefUtil.setTimerState(Timer.TimerState.Running, context)
+            nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
         }
 
-        fun showTimerPaused(context: Context, wakeupTime: Long){
+        fun showTimerPaused(context: Context, secondsRemaining: Long){
             val resumeIntent = Intent(context, NotificationActionReceiver::class.java)
             resumeIntent.action = Constants.ACTION_RESUME
             val resumePendingIntent = PendingIntent.getBroadcast(context,
@@ -135,7 +85,7 @@ class NotifUtil {
 //            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
             val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is paused.")
-                .setContentText("${formatTime(wakeupTime)} remaining, resume?")
+                .setContentText("${formatTime(secondsRemaining)} remaining, resume?")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_play, "Resume", resumePendingIntent)
