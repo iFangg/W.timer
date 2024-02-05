@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity(), Subscriber {
 
 //    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    val timer = Timer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +56,7 @@ class MainActivity : AppCompatActivity(), Subscriber {
             actionBar.setIcon(drawable)
         }
 
+        Timer.addSubscriber(this)
         val title = " Timer"
         val spannableString = SpannableString(title)
         val textColour = ContextCompat.getColor(this, R.color.white)
@@ -70,25 +70,25 @@ class MainActivity : AppCompatActivity(), Subscriber {
 
         binding.fabPlay.setOnClickListener{_ ->
             PrefUtil.setTimerState(Timer.TimerState.Running, this)
-            timer.startTimer()
+            Timer.startTimer(this)
 //            startTimer()
         }
 
         binding.fabPause.setOnClickListener{_ ->
             PrefUtil.setTimerState(Timer.TimerState.Paused, this)
-            timer.stopTimer()
+            Timer.pauseTimer(this)
 //            updateButtons()
         }
 
         binding.fabStop.setOnClickListener{_ ->
-            timer.onTimerFinished()
+            Timer.onTimerFinished(this)
 //            onTimerFinished()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        timer.initTimer()
+        Timer.initTimer(this)
 
         TimerController.removeAlarm(this)
         NotifUtil.hideTimerNotif(this)
@@ -125,13 +125,14 @@ class MainActivity : AppCompatActivity(), Subscriber {
 
         val countdownText = getString(R.string.countdown_text, minTilFin, secStr)
         binding.contentMain.textViewCountDown.text = countdownText
-        // todo: add for notification
-        if (!timer.getInAppStatus()) {
+        // todo add for notification
+        if (!Timer.getInAppStatus()) {
             NotifUtil.showTimerRunning(this, TimerController.getWakeUpTime())
         }
     }
 
     private fun updateButtons() {
+        println("state: ${PrefUtil.getTimerState(this)}")
         // refactor?
         when (PrefUtil.getTimerState(this)) {
             Timer.TimerState.Running -> {

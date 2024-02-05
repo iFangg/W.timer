@@ -20,8 +20,6 @@ class NotificationActionReceiver: BroadcastReceiver() {
             }
 
             Constants.ACTION_PAUSE -> {
-                '[=
-                '
                 val secsLeft = PrefUtil.getSecondsRemaining(context)
                 val alarmSetTime = PrefUtil.getTimerLen(context) * 60
                 val nowSec = Timer.nowSec
@@ -31,28 +29,28 @@ class NotificationActionReceiver: BroadcastReceiver() {
 //                println("secsLeft: $secsLeft ($nowSec - $alarmSetTime)")
                 PrefUtil.setSecondsRemaining(secsLeft, context)
 
-                MainActivity.removeAlarm(context)
+                TimerController.removeAlarm(context)
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val pauseIntent = Intent(context, TimerExpiredReceiver::class.java)
                 val pendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
                 alarmManager.cancel(pendingIntent)
 
-                PrefUtil.setTimerState(MainActivity.TimerState.Paused, context)
+                PrefUtil.setTimerState(Timer.TimerState.Paused, context)
                 NotifUtil.showTimerPaused(context, secsLeft)
             }
 
             Constants.ACTION_RESUME -> {
                 val secsLeft = PrefUtil.getSecondsRemaining(context)
-                val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
-                PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
+                val wakeup = TimerController.setAlarm(context, Timer.nowSec, secsLeft)
+                PrefUtil.setTimerState(Timer.TimerState.Running, context)
                 NotifUtil.showTimerRunning(context, secsLeft)
             }
 
             Constants.ACTION_START -> {
                 val secsLeft = PrefUtil.getTimerLen(context) * 60L
 //                println("Seconds left $secsLeft")
-                val wakeup = MainActivity.setAlarm(context, MainActivity.nowSec, secsLeft)
-                PrefUtil.setTimerState(MainActivity.TimerState.Running, context)
+                val wakeup = TimerController.setAlarm(context, Timer.nowSec, secsLeft)
+                PrefUtil.setTimerState(Timer.TimerState.Running, context)
                 PrefUtil.setSecondsRemaining(secsLeft, context)
                 NotifUtil.showTimerRunning(context, wakeup)
             }

@@ -11,7 +11,6 @@ import kotlin.properties.Delegates
 
 class TimerController {
     companion object {
-        lateinit var timer: CountDownTimer
         private var wakeUp by Delegates.notNull<Long>()
         fun setAlarm(context: Context, currSec: Long, remainSec: Long): Long {
             wakeUp = (currSec + remainSec)

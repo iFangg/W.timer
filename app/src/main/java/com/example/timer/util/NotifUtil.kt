@@ -60,6 +60,7 @@ class NotifUtil {
 
             val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is Running")
+
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_pause, "Pause", pendingPauseIntent)
@@ -94,6 +95,7 @@ class NotifUtil {
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
 
+            Timer.pauseTimer(context)
             nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
         }
 
@@ -116,6 +118,7 @@ class NotifUtil {
             val nManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nManager.createNotificationChannel(CHANNEL_ID_TIMER, CHANNEL_NAME_TIMER, true)
 
+            Timer.onTimerFinished(context)
             nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
         }
 
