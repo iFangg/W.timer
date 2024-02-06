@@ -33,16 +33,9 @@ object Timer {
     private var timerLengthSeconds: Long = 0
     private var timerState: TimerState = TimerState.Stopped
     private var secondsRemaining: Long = 0
+    private var finishTime: Long = 0
     lateinit var timer: CountDownTimer
-//    private var timer: CountDownTimer = object : CountDownTimer(secondsRemaining * 1000, 1000) {
-//        override fun onTick(msTilDone: Long) {
-//            secondsRemaining = msTilDone / 1000
-//            notifySubscribers()
-////                updateCountdownUI()
-//        }
-//
-//        override fun onFinish() = onTimerFinished()
-//    }
+    private var timerExists = false
 
     fun getInAppStatus(): Boolean {
         return inApp
@@ -52,20 +45,8 @@ object Timer {
         inApp = boolean
     }
 
-//    fun getContext(): Context? {
-//        return timerContext?.get()
-//    }
-//
-//    fun setContext(context: Context) {
-//        timerContext = WeakReference(context.applicationContext)
-//    }
-
     fun getTimerLenSeconds(): Long {
         return timerLengthSeconds
-    }
-
-    fun setTimerLenSeconds(length: Long) {
-        timerLengthSeconds = length
     }
 
     fun getSecondsRemaining(): Long {
@@ -76,67 +57,83 @@ object Timer {
         secondsRemaining = sec
     }
 
+    fun getFinishTime(): Long {
+        return finishTime
+    }
+
+    fun setFinishTime(num: Long) {
+        finishTime = num
+    }
+
     private fun setNewTimerLength(context: Context) {
         val lenMin = PrefUtil.getTimerLen(context)
         println("lenMin: $lenMin")
-        timerLengthSeconds = (lenMin * 60L)
-
-//        val context: Context? = timerContext?.get()
-//        val lenMin = context?.let { PrefUtil.getTimerLen(it) }
-//        if (lenMin != null) {
-//            println("lenMin: $lenMin")
-//            timerLengthSeconds = (lenMin * 60L)
+//        if (!inApp) {
+//            Exception().printStackTrace()
 //        }
-//        progress_countdown.max = timerLengthSeconds.toInt()
+        timerLengthSeconds = (lenMin * 60L)
     }
 
     private fun setPreviousTimerLength(context: Context) {
         timerLengthSeconds = PrefUtil.getPrevTimerLenSeconds(context)
-//        timerLengthSeconds = timerContext?.get()?.let { PrefUtil.getPrevTimerLenSeconds(it) }!!
-//        progress_countdown.max = timerLengthSeconds.toInt()
+    }
+
+    fun exists(): Boolean {
+        return timerExists
     }
 
     fun initTimer(context: Context) {
-        println("hello")
-//        val context: Context = timerContext?.get() ?: return
-        println("starting state is: $timerState")
+        println("starting state is: $timerState, ${PrefUtil.getAlarmSetTime(context)}")
         PrefUtil.setTimerState(timerState, context)
         if (timerState == TimerState.Stopped) {
             setNewTimerLength(context)
-        } else {
-            setPreviousTimerLength(context)
         }
+//        else {
+//            setPreviousTimerLength(context)
+//        }
 
         secondsRemaining = if (timerState == TimerState.Stopped) timerLengthSeconds else PrefUtil.getSecondsRemaining(context)
-        println("seconds remaining: $secondsRemaining")
-//        val alarmSetTime = timerContext?.get()?.let { PrefUtil.getAlarmSetTime(it) }!!
-        val alarmSetTime = PrefUtil.getAlarmSetTime(context)
-        if (alarmSetTime > 0) secondsRemaining -= nowSec - alarmSetTime
-        if (secondsRemaining <= 0) onTimerFinished(context)
-        else if (timerState == TimerState.Running) startTimer(context)
+        val wakeup = secondsRemaining * 1000 + nowSec
+        println("seconds remaining: $secondsRemaining, wakeup: $wakeup (secR + $nowSec)")
+        PrefUtil.setAlarmSetTime(wakeup, context)
+        setFinishTime(wakeup)
+//        TimerController.setAlarm(context, 0, secondsRemaining)
+        println("result alarm time is ${PrefUtil.getAlarmSetTime(context)}")
+
+
+        if (secondsRemaining <= 0) {
+//            println("timer is up?")
+            onTimerFinished(context)
+        }
+        else if (timerState == TimerState.Running && !timerExists) startTimer(context)
 
         notifySubscribers()
-//        updateButtons()
-//        updateCountdownUI()
     }
-
 
     fun startTimer(context: Context) {
         timerState = TimerState.Running
         PrefUtil.setTimerState(timerState, context)
-//        val context: Context? = timerContext?.get()
-//        if (context != null) PrefUtil.setTimerState(timerState, context)
+//        println("seconds left: ${PrefUtil.getSecondsRemaining(context)} - ${getSecondsRemaining()}")
 
+        println("new timer created")
+        timerExists = true
         timer = object : CountDownTimer(secondsRemaining * 1000, 1000) {
             override fun onTick(msTilDone: Long) {
                 secondsRemaining = msTilDone / 1000
+                println("millisInFuture: ${secondsRemaining * 1000}, seconds remaining: ${PrefUtil.getSecondsRemaining(context)}")
                 PrefUtil.setSecondsRemaining(secondsRemaining, context)
+                setSecondsRemaining(secondsRemaining)
 
                 notifySubscribers()
 //                updateCountdownUI()
             }
-            override fun onFinish() = onTimerFinished(context)
-        }.start()
+            override fun onFinish() {
+                println("timer has finished?!")
+                onTimerFinished(context)
+            }
+        }
+
+        timer.start()
     }
 
     fun pauseTimer(context: Context) {
@@ -146,26 +143,18 @@ object Timer {
         notifySubscribers()
     }
 
+    // aka stopTimer
     fun onTimerFinished(context: Context) {
-//        println("I was stopped")
+        Exception().printStackTrace()
+        println("I was stopped")
         timer.cancel()
         setNewTimerLength(context)
-//        progress_countdown.progress = 0
 
+        timerState = TimerState.Stopped
         PrefUtil.setTimerState(TimerState.Stopped, context)
         PrefUtil.setSecondsRemaining(timerLengthSeconds, context)
         secondsRemaining = timerLengthSeconds
 
         notifySubscribers()
-//        val context: Context? = timerContext?.get()
-//        if (context != null) {
-//            PrefUtil.setTimerState(timerState, context)
-//            PrefUtil.setSecondsRemaining(timerLengthSeconds, context)
-//            secondsRemaining = timerLengthSeconds
-//
-//            notifySubscribers()
-//        }
-//        updateCountdownUI()
-//        updateButtons()
     }
 }

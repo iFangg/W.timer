@@ -47,9 +47,8 @@ class NotifUtil {
             return formattedString
         }
 
-        //todo USE SAME COUNTDOWN TIMER AS MAIN
         fun showTimerRunning(context: Context, wakeupTime: Long) {
-            println("running time: $wakeupTime")
+            println("wakeup time: $wakeupTime")
             val stopIntent = Intent(context, NotificationActionReceiver::class.java)
             stopIntent.action = Constants.ACTION_STOP
             val pendingStopIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -58,9 +57,10 @@ class NotifUtil {
             pauseIntent.action = Constants.ACTION_PAUSE
             val pendingPauseIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
+            val df = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT)
             val nBuilder = getBasicNotificationBuilder(context, false)
             nBuilder.setContentTitle("Timer is Running")
-
+                .setContentText("End: ${df.format(Date(wakeupTime))} (in ${formatTime(Timer.getSecondsRemaining())})")
                 .setContentIntent(getPendingIntentWithStack(context, MainActivity::class.java))
                 .setOngoing(true)
                 .addAction(R.drawable.ic_pause, "Pause", pendingPauseIntent)
@@ -73,7 +73,8 @@ class NotifUtil {
             nManager.notify(TIMER_NOTIF_ID, nBuilder.build())
         }
 
-        fun showTimerPaused(context: Context, secondsRemaining: Long){
+        fun showTimerPaused(context: Context){
+            val secondsRemaining = PrefUtil.getSecondsRemaining(context)
             val resumeIntent = Intent(context, NotificationActionReceiver::class.java)
             resumeIntent.action = Constants.ACTION_RESUME
             val resumePendingIntent = PendingIntent.getBroadcast(context,
@@ -100,6 +101,7 @@ class NotifUtil {
         }
 
         fun showTimerExpired(context: Context) {
+//            Exception().printStackTrace()
             val startIntent = Intent(context, NotificationActionReceiver::class.java)
             startIntent.action = Constants.ACTION_START
             val pendingIntent = PendingIntent.getBroadcast(context, 0, startIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)

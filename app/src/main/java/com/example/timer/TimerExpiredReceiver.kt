@@ -9,9 +9,9 @@ import com.example.timer.util.PrefUtil
 class TimerExpiredReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        Exception().printStackTrace()
         NotifUtil.showTimerExpired(context)
 
-        PrefUtil.setTimerState(Timer.TimerState.Stopped, context)
-        PrefUtil.setAlarmSetTime(0, context)
+        Timer.onTimerFinished(context)
     }
 }
