@@ -130,7 +130,8 @@ class MainActivity : AppCompatActivity(), Subscriber {
         binding.contentMain.textViewCountDown.text = countdownText
         // todo add for notifications, maybe have current state as a variable here and change behaviour depending on state?
         if (!Timer.getInAppStatus()) {
-            if (PrefUtil.getTimerState(this) == Timer.TimerState.Stopped) NotifUtil.showTimerExpired(this) else NotifUtil.showTimerRunning(this, Timer.getFinishTime())
+            println("expired? $secondsRemaining s left")
+            if (PrefUtil.getSecondsRemaining(this) <= 0) NotifUtil.showTimerExpired(this) else NotifUtil.showTimerRunning(this, Timer.getFinishTime())
         }
     }
 

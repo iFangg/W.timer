@@ -45,7 +45,7 @@ class NotificationActionReceiver: BroadcastReceiver() {
                 // todo update end time of timer to reflect time paused
 //                val secsLeft = PrefUtil.getSecondsRemaining(context)
 //                val wakeup = TimerController.setAlarm(context, Timer.nowSec, secsLeft)
-                val wakeup = TimerController.getWakeUpTime()
+                val wakeup = PrefUtil.getAlarmSetTime(context)
                 Timer.startTimer(context)
                 PrefUtil.setTimerState(Timer.TimerState.Running, context)
                 NotifUtil.showTimerRunning(context, wakeup)
