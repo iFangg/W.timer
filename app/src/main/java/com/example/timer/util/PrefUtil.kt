@@ -37,16 +37,16 @@ class PrefUtil {
 
         fun setTimerState(state: Timer.TimerState, context: Context) {
 //            Exception().printStackTrace()
-            println("before: ${getTimerState(context)}")
+//            println("before: ${getTimerState(context)}")
             if (state == getTimerState(context)) {
-                println("same state, no need to change")
+//                println("same state, no need to change")
                 return
             }
             val editor = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context).edit()
             val ordinal = state.ordinal
             editor.putInt(TIMER_STATE_ID, ordinal)
             editor.apply()
-            println("after: ${getTimerState(context)}")
+//            println("after: ${getTimerState(context)}")
         }
 
         private const val SECONDS_REMAINING_ID = "com.example.timer.seconds_remaining"

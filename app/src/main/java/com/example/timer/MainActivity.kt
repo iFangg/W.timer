@@ -13,6 +13,7 @@ import android.os.CountDownTimer
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.view.Gravity
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -20,7 +21,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
+import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.BlendModeColorFilterCompat
@@ -57,7 +62,7 @@ class MainActivity : AppCompatActivity(), Subscriber {
         }
 
         Timer.addSubscriber(this)
-        val title = " Timer"
+        val title = " W.timer"
         val spannableString = SpannableString(title)
         val textColour = ContextCompat.getColor(this, R.color.white)
         spannableString.setSpan(
@@ -168,9 +173,45 @@ class MainActivity : AppCompatActivity(), Subscriber {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.settings_button -> {
+                if (item.isActionViewExpanded) {
+                    println("settings button clicked")
+                } else {
+//                    println("${item.actionView}")
+                    item.actionView?.let { showDropdown(it) }
+                }
+
+                return true
+            }
+//            R.id.toggle_theme -> {
+//                true
+//            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showDropdown(view: View) {
+        println("view is: $view")
+        val dropdownMenu = PopupMenu(this, view, Gravity.BOTTOM)
+        dropdownMenu.menuInflater.inflate(R.menu.menu_main, dropdownMenu.menu)
+
+        dropdownMenu.setOnMenuItemClickListener {menuItem ->
+            when (menuItem.itemId) {
+                R.id.settings_button -> {
+                    true
+                }
+
+                R.id.item2 -> {
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
+        }
+
+        dropdownMenu.show()
     }
 
 //    override fun onSupportNavigateUp(): Boolean {
