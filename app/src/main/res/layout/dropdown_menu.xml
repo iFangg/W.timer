@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:layout_gravity="center"
+    android:paddingStart="8dp"
+    android:paddingEnd="24dp" >
 
-</menu>
+    <ImageView
+        android:id="@+id/dropdown_menu"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:src="@drawable/ic_menudots"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@string/settings_dropdown_menu" />
+
+</LinearLayout>

@@ -67,10 +67,7 @@ object Timer {
 
     private fun setNewTimerLength(context: Context) {
         val lenMin = PrefUtil.getTimerLen(context)
-        println("lenMin: $lenMin")
-//        if (!inApp) {
-//            Exception().printStackTrace()
-//        }
+//        println("lenMin: $lenMin")
         timerLengthSeconds = (lenMin * 60L)
     }
 
@@ -83,7 +80,7 @@ object Timer {
     }
 
     fun initTimer(context: Context) {
-        println("starting state is: $timerState, ${PrefUtil.getAlarmSetTime(context)}")
+//        println("starting state is: $timerState, ${PrefUtil.getAlarmSetTime(context)}")
         PrefUtil.setTimerState(timerState, context)
         if (timerState == TimerState.Stopped) {
             setNewTimerLength(context)
@@ -94,11 +91,11 @@ object Timer {
 
         secondsRemaining = if (timerState == TimerState.Stopped) timerLengthSeconds else PrefUtil.getSecondsRemaining(context)
         val wakeup = secondsRemaining * 1000 + nowSec
-        println("seconds remaining: $secondsRemaining, wakeup: $wakeup (secR + $nowSec)")
+//        println("seconds remaining: $secondsRemaining, wakeup: $wakeup (secR + $nowSec)")
         PrefUtil.setAlarmSetTime(wakeup, context)
         setFinishTime(wakeup)
 //        TimerController.setAlarm(context, 0, secondsRemaining)
-        println("result alarm time is ${PrefUtil.getAlarmSetTime(context)}")
+//        println("result alarm time is ${PrefUtil.getAlarmSetTime(context)}")
 
 
         if (secondsRemaining <= 0) {
@@ -115,12 +112,12 @@ object Timer {
         PrefUtil.setTimerState(timerState, context)
 //        println("seconds left: ${PrefUtil.getSecondsRemaining(context)} - ${getSecondsRemaining()}")
 
-        println("new timer created")
+//        println("new timer created")
         timerExists = true
         timer = object : CountDownTimer(secondsRemaining * 1000, 1000) {
             override fun onTick(msTilDone: Long) {
                 secondsRemaining = msTilDone / 1000
-                println("millisInFuture: ${secondsRemaining * 1000}, seconds remaining: ${PrefUtil.getSecondsRemaining(context)}")
+//                println("millisInFuture: ${secondsRemaining * 1000}, seconds remaining: ${PrefUtil.getSecondsRemaining(context)}")
                 PrefUtil.setSecondsRemaining(secondsRemaining, context)
                 setSecondsRemaining(secondsRemaining)
 
@@ -128,7 +125,7 @@ object Timer {
 //                updateCountdownUI()
             }
             override fun onFinish() {
-                println("timer has finished?!")
+//                println("timer has finished?!")
                 onTimerFinished(context)
             }
         }
@@ -145,8 +142,8 @@ object Timer {
 
     // aka stopTimer
     fun onTimerFinished(context: Context) {
-        Exception().printStackTrace()
-        println("I was stopped")
+//        Exception().printStackTrace()
+//        println("I was stopped")
         timer.cancel()
         setNewTimerLength(context)
 
