@@ -14,6 +14,12 @@ class PrefUtil {
             return preferences.getInt(TIMER_LENGTH_ID, 1);
         }
 
+        fun setTimerLen(context: Context, timerLength: Int) {
+            val editor = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context).edit()
+            editor.putInt(TIMER_LENGTH_ID, timerLength)
+            editor.apply()
+        }
+
         private const val PREVIOUS_TIMER_LEN_SEC_ID = "com.example.timer.previous_timer_len_id"
 
         fun getPrevTimerLenSeconds(context: Context): Long {

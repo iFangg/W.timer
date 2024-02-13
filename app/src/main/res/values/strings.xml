@@ -12,6 +12,7 @@
     <string name="play">Starts the timer</string>
     <string name="countdown_text">%1$d:%2$s</string>
     <string name="toggle_theme">Changes theme to light or dark</string>
+    <string name="timer_length_button">Button to change timer length </string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

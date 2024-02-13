@@ -1,6 +1,7 @@
 package com.example.timer
 
 import android.app.AlarmManager
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -24,6 +26,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.app.NotificationManagerCompat
@@ -114,10 +117,39 @@ class MainActivity : AppCompatActivity(), Subscriber {
         } else if (timerState == Timer.TimerState.Paused) {
             NotifUtil.showTimerPaused(this)
         }
+    }
 
-//        PrefUtil.setPrevLenSeconds(Timer.getTimerLenSeconds(), this)
-//        PrefUtil.setSecondsRemaining(secondsRemaining, this)
-//        PrefUtil.setTimerState(timerState, this)
+    fun onChangeTimeButtonClick(view: View) {
+       showNewTimeLen()
+    }
+
+    fun showNewTimeLen() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Change Timer Len")
+
+        val input = EditText(this)
+        input.inputType = InputType.TYPE_CLASS_NUMBER
+        builder.setView(input)
+
+        builder.setPositiveButton("OK") { _, _ ->
+            // Handle OK button click
+            val newTimerLength = input.text.toString().toIntOrNull()
+            if (newTimerLength != null) {
+                PrefUtil.setTimerLen(this, newTimerLength)
+                Timer.initTimer(this)
+                // Update the timer length in your Timer object or wherever it's needed
+                // For example, you can call setNewTimerLength(context) here
+            } else {
+                // Handle invalid input
+                println("Incorrect input!")
+            }
+        }
+
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.cancel()
+        }
+
+        builder.show()
     }
 
     override fun update() {
