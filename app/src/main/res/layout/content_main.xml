@@ -10,19 +10,35 @@
     >
 
 <!--    android:text for text u can see-->
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/textView_countDown"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="10:00"
-        android:textSize="70sp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:visibility="visible"
+<!--    <androidx.appcompat.widget.AppCompatTextView-->
+<!--        android:id="@+id/textView_countDown"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        tools:text="10:00"-->
+<!--        android:textSize="70sp"-->
+<!--        android:textAppearance="@style/TextAppearance.AppCompat.Large"-->
+<!--        android:visibility="visible"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        />-->
+
+    <Button
+        android:id="@+id/btn_change_time"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:onClick="onChangeTimeButtonClick"
+        android:text="@string/timer_length_button"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        app:autoSizeTextType="uniform"
+        app:autoSizeMinTextSize="12sp"
+        app:autoSizeMaxTextSize="30sp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
