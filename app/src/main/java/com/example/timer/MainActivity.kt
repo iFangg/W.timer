@@ -76,6 +76,10 @@ class MainActivity : AppCompatActivity(), Subscriber {
         )
         supportActionBar?.title = spannableString
 
+        binding.contentMain.btnChangeTime.setOnClickListener{_ ->
+            Timer.setNewTimerLengthFromInput(this)
+        }
+
         binding.fabPlay.setOnClickListener{_ ->
             PrefUtil.setTimerState(Timer.TimerState.Running, this)
             Timer.startTimer(this)
@@ -164,7 +168,7 @@ class MainActivity : AppCompatActivity(), Subscriber {
         val secStr = String.format("%02d", secInMinTilFin)
 
         val countdownText = getString(R.string.countdown_text, minTilFin, secStr)
-        binding.contentMain.textViewCountDown.text = countdownText
+        binding.contentMain.btnChangeTime.text = countdownText
         // todo add for notifications, maybe have current state as a variable here and change behaviour depending on state?
         if (!Timer.getInAppStatus()) {
             println("expired? $secondsRemaining s left")
