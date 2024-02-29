@@ -91,7 +91,10 @@ object Timer {
             ): CharSequence? {
                 source?.let {
                     for (i in start until end) {
-                        if (!Character.isDigit(it[i])) return ""
+                        println("Digit: ${it[i]}")
+                        if (!Character.isDigit(it[i])) {
+                            return "0"
+                        }
                     }
                 }
 
